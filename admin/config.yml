@@ -1,0 +1,654 @@
+# yaml-language-server: $schema=https://unpkg.com/@sveltia/cms/schema/sveltia-cms.json
+
+backend:
+  name: github
+  repo: techfairy/techfairy-source
+  branch: main
+  auth_methods: [token]
+
+media_folder: /public/uploads
+public_folder: /techfairy-pages/uploads
+
+locale: ru
+
+slug:
+  encoding: ascii
+  clean_accents: true
+  sanitize_replacement: '-'
+  trim: true
+  lowercase: true
+
+field_defaults:
+  richtext:
+    modes: [rich_text, raw]
+    buttons: [bold, italic, link, heading-two, heading-three, bulleted-list, numbered-list, quote]
+    editor_components: [image]
+
+singletons:
+  - name: settings
+    label: Настройки сайта
+    icon: settings
+    file: /content/settings/site.json
+    format: json
+    fields:
+      - { name: siteName, label: Название сайта, widget: string, required: true }
+      - { name: siteUrl, label: URL сайта, widget: string, required: false }
+      - { name: logoText, label: Текст логотипа, widget: string, required: false }
+      - label: SEO по умолчанию
+        name: defaultSeo
+        widget: object
+        required: false
+        fields:
+          - { name: title, label: SEO title, widget: string, required: false }
+          - { name: description, label: Meta description, widget: text, required: false }
+          - { name: ogImage, label: OG image, widget: image, required: false }
+      - label: Меню
+        name: navigation
+        widget: object
+        fields:
+          - { name: brand, label: Бренд в шапке, widget: string, required: false }
+          - label: Пункты меню
+            name: links
+            widget: list
+            summary: '{{label}} -> {{href}}'
+            required: false
+            fields:
+              - { name: label, label: Текст, widget: string, required: true }
+              - { name: href, label: Ссылка, widget: string, required: true }
+          - label: Кнопка в шапке
+            name: cta
+            widget: object
+            required: false
+            fields:
+              - { name: label, label: Текст, widget: string, required: false }
+              - { name: href, label: Ссылка, widget: string, required: false }
+      - label: Контакты
+        name: contacts
+        widget: object
+        required: false
+        fields:
+          - { name: email, label: Email, widget: string, required: false }
+          - { name: telegram, label: Telegram текст, widget: string, required: false }
+          - { name: telegramUrl, label: Telegram ссылка, widget: string, required: false }
+      - label: Социальные ссылки
+        name: social
+        widget: list
+        required: false
+        summary: '{{label}} -> {{href}}'
+        fields:
+          - { name: label, label: Название, widget: string, required: true }
+          - { name: href, label: Ссылка, widget: string, required: true }
+      - label: Футер
+        name: footer
+        widget: object
+        required: false
+        fields:
+          - { name: text, label: Текст футера, widget: richtext, required: false, minimal: true }
+          - { name: copyright, label: Copyright, widget: string, required: false }
+          - label: Ссылки футера
+            name: links
+            widget: list
+            required: false
+            summary: '{{label}} -> {{href}}'
+            fields:
+              - { name: label, label: Текст, widget: string, required: true }
+              - { name: href, label: Ссылка, widget: string, required: true }
+          - label: Юридические ссылки
+            name: legalLinks
+            widget: list
+            required: false
+            summary: '{{label}} -> {{href}}'
+            fields:
+              - { name: label, label: Текст, widget: string, required: true }
+              - { name: href, label: Ссылка, widget: string, required: true }
+collections:
+  - name: pages
+    label: Страницы
+    label_singular: страница
+    folder: /content/pages
+    format: json
+    extension: json
+    identifier_field: title
+    summary: '{{title}} — {{slug}}'
+    create: true
+    fields:
+      - { name: id, label: ID, widget: string, required: true }
+      - { name: title, label: Название, widget: string, required: true }
+      - { name: slug, label: URL, widget: string, required: true }
+      - { name: status, label: Статус, widget: select, options: [draft, modified, published], default: draft }
+      - { name: topic, label: Тема, widget: string, required: false }
+      - { name: contentMode, label: Режим, widget: select, options: [blocks, classic], default: blocks }
+      - { name: updatedAt, label: Обновлено, widget: datetime, required: false }
+      - label: SEO
+        name: seo
+        widget: object
+        required: false
+        fields:
+          - { name: title, label: SEO title, widget: string, required: false }
+          - { name: description, label: Meta description, widget: text, required: false }
+          - { name: ogImage, label: OG image, widget: image, required: false }
+      - label: Astro-блоки страницы
+        name: blocks
+        widget: list
+        required: false
+        summary: '{{title}} / {{type}}'
+        label_singular: блок
+        collapsed: auto
+        minimize_collapsed: auto
+        allow_add: true
+        allow_remove: true
+        allow_duplicate: true
+        allow_reorder: true
+        types:
+          - name: hero
+            label: Hero / первый экран
+            fields:
+              - { name: id, label: ID блока, widget: string, required: true }
+              - { name: title, label: Название в CMS, widget: string, required: false }
+              - { name: description, label: Описание блока, widget: text, required: false }
+              - { name: status, label: Статус, widget: select, options: [draft, modified, published], required: false }
+              - { name: enabled, label: Показывать на сайте, widget: boolean, default: true }
+              - { name: anchor, label: Якорь, widget: string, required: false }
+              - label: Поля блока
+                name: fields
+                widget: object
+                fields:
+                  - { name: backgroundWord, label: Фоновое слово, widget: string, required: false }
+                  - label: Строки заголовка
+                    name: titleLines
+                    widget: list
+                    field: { name: line, label: Строка, widget: string }
+                  - { name: sublineStrong, label: Выделенная строка, widget: string, required: false }
+                  - { name: subline, label: Подзаголовок, widget: text, required: false }
+                  - label: Портрет
+                    name: portrait
+                    widget: object
+                    required: false
+                    fields:
+                      - { name: src, label: Изображение, widget: image, required: false }
+                      - { name: alt, label: Alt, widget: string, required: false }
+                  - label: Кнопки
+                    name: actions
+                    widget: list
+                    summary: '{{label}}'
+                    fields:
+                      - { name: label, label: Текст, widget: string }
+                      - { name: href, label: Ссылка, widget: string }
+                      - { name: variant, label: Вариант, widget: select, options: [primary, secondary], required: false }
+                  - label: Нижняя полоса
+                    name: stripItems
+                    widget: list
+                    summary: '{{title}}'
+                    fields:
+                      - { name: title, label: Заголовок, widget: string }
+                      - { name: text, label: Текст, widget: text, required: false }
+                      - { name: href, label: Ссылка, widget: string, required: false }
+                      - { name: icon, label: Иконка, widget: string, required: false }
+          - name: statement
+            label: Смысловой текст
+            fields:
+              - { name: id, label: ID блока, widget: string, required: true }
+              - { name: title, label: Название в CMS, widget: string, required: false }
+              - { name: description, label: Описание блока, widget: text, required: false }
+              - { name: status, label: Статус, widget: select, options: [draft, modified, published], required: false }
+              - { name: enabled, label: Показывать на сайте, widget: boolean, default: true }
+              - label: Поля блока
+                name: fields
+                widget: object
+                fields:
+                  - { name: title, label: Заголовок, widget: text, required: false }
+                  - label: Текст
+                    name: paragraphs
+                    widget: richtext
+                    required: false
+                    minimal: true
+          - name: services
+            label: Услуги
+            fields:
+              - { name: id, label: ID блока, widget: string, required: true }
+              - { name: title, label: Название в CMS, widget: string, required: false }
+              - { name: description, label: Описание блока, widget: text, required: false }
+              - { name: status, label: Статус, widget: select, options: [draft, modified, published], required: false }
+              - { name: enabled, label: Показывать на сайте, widget: boolean, default: true }
+              - { name: anchor, label: Якорь, widget: string, required: false }
+              - label: Поля блока
+                name: fields
+                widget: object
+                fields:
+                  - { name: kicker, label: Надзаголовок, widget: string, required: false }
+                  - { name: title, label: Заголовок, widget: string, required: false }
+                  - label: Карточки услуг
+                    name: cards
+                    widget: list
+                    summary: '{{title}}'
+                    collapsed: auto
+                    fields:
+                      - { name: theme, label: Тема карточки, widget: select, options: [light, dark], required: false }
+                      - { name: index, label: Номер/подпись, widget: string, required: false }
+                      - { name: title, label: Заголовок, widget: string }
+                      - { name: text, label: Текст, widget: text, required: false }
+                      - label: Сценарии
+                        name: scenarios
+                        widget: list
+                        summary: '{{title}}'
+                        fields:
+                          - { name: title, label: Заголовок, widget: string }
+                          - { name: text, label: Текст, widget: text, required: false }
+                      - { name: techLabel, label: Подпись технологий, widget: string, required: false }
+                      - label: Технологии
+                        name: tech
+                        widget: list
+                        field: { name: item, label: Технология, widget: string }
+                      - { name: noteStrong, label: Выделение, widget: string, required: false }
+                      - { name: note, label: Примечание, widget: text, required: false }
+                      - label: Действие
+                        name: action
+                        widget: object
+                        required: false
+                        fields:
+                          - { name: label, label: Текст, widget: string, required: false }
+                          - { name: href, label: Ссылка, widget: string, required: false }
+          - name: projects
+            label: Проекты
+            fields:
+              - { name: id, label: ID блока, widget: string, required: true }
+              - { name: title, label: Название в CMS, widget: string, required: false }
+              - { name: description, label: Описание блока, widget: text, required: false }
+              - { name: status, label: Статус, widget: select, options: [draft, modified, published], required: false }
+              - { name: enabled, label: Показывать на сайте, widget: boolean, default: true }
+              - { name: anchor, label: Якорь, widget: string, required: false }
+              - label: Поля блока
+                name: fields
+                widget: object
+                fields:
+                  - { name: kicker, label: Надзаголовок, widget: string, required: false }
+                  - { name: title, label: Заголовок, widget: string, required: false }
+                  - { name: text, label: Текст, widget: text, required: false }
+                  - label: Проекты
+                    name: projects
+                    widget: list
+                    summary: '{{title}}'
+                    fields:
+                      - { name: title, label: Заголовок, widget: string }
+                      - { name: text, label: Текст, widget: text, required: false }
+                      - label: Метки
+                        name: tags
+                        widget: list
+                        field: { name: tag, label: Метка, widget: string }
+                      - { name: href, label: Ссылка, widget: string, required: false }
+          - name: speed
+            label: Скорость / Astro
+            fields:
+              - { name: id, label: ID блока, widget: string, required: true }
+              - { name: title, label: Название в CMS, widget: string, required: false }
+              - { name: description, label: Описание блока, widget: text, required: false }
+              - { name: status, label: Статус, widget: select, options: [draft, modified, published], required: false }
+              - { name: enabled, label: Показывать на сайте, widget: boolean, default: true }
+              - label: Поля блока
+                name: fields
+                widget: object
+                fields:
+                  - { name: kicker, label: Надзаголовок, widget: string, required: false }
+                  - { name: title, label: Заголовок, widget: string, required: false }
+                  - label: Текст
+                    name: paragraphs
+                    widget: richtext
+                    required: false
+                    minimal: true
+                  - label: Кнопка
+                    name: action
+                    widget: object
+                    required: false
+                    fields:
+                      - { name: label, label: Текст, widget: string, required: false }
+                      - { name: href, label: Ссылка, widget: string, required: false }
+                  - label: Список
+                    name: items
+                    widget: list
+                    field: { name: item, label: Пункт, widget: string }
+          - name: audience
+            label: Для кого
+            fields:
+              - { name: id, label: ID блока, widget: string, required: true }
+              - { name: title, label: Название в CMS, widget: string, required: false }
+              - { name: description, label: Описание блока, widget: text, required: false }
+              - { name: status, label: Статус, widget: select, options: [draft, modified, published], required: false }
+              - { name: enabled, label: Показывать на сайте, widget: boolean, default: true }
+              - label: Поля блока
+                name: fields
+                widget: object
+                fields:
+                  - { name: kicker, label: Надзаголовок, widget: string, required: false }
+                  - { name: title, label: Заголовок, widget: string, required: false }
+                  - label: Аудитории
+                    name: items
+                    widget: list
+                    summary: '{{title}}'
+                    fields:
+                      - { name: title, label: Заголовок, widget: string }
+                      - { name: text, label: Текст, widget: text, required: false }
+          - name: trust
+            label: Подход / доверие
+            fields:
+              - { name: id, label: ID блока, widget: string, required: true }
+              - { name: title, label: Название в CMS, widget: string, required: false }
+              - { name: description, label: Описание блока, widget: text, required: false }
+              - { name: status, label: Статус, widget: select, options: [draft, modified, published], required: false }
+              - { name: enabled, label: Показывать на сайте, widget: boolean, default: true }
+              - { name: anchor, label: Якорь, widget: string, required: false }
+              - label: Поля блока
+                name: fields
+                widget: object
+                fields:
+                  - { name: kicker, label: Надзаголовок, widget: string, required: false }
+                  - { name: title, label: Заголовок, widget: text, required: false }
+                  - { name: text, label: Текст, widget: text, required: false }
+                  - label: Доказательства
+                    name: proofs
+                    widget: list
+                    field: { name: proof, label: Пункт, widget: string }
+          - name: tech
+            label: Технологии
+            fields:
+              - { name: id, label: ID блока, widget: string, required: true }
+              - { name: title, label: Название в CMS, widget: string, required: false }
+              - { name: description, label: Описание блока, widget: text, required: false }
+              - { name: status, label: Статус, widget: select, options: [draft, modified, published], required: false }
+              - { name: enabled, label: Показывать на сайте, widget: boolean, default: true }
+              - label: Поля блока
+                name: fields
+                widget: object
+                fields:
+                  - { name: title, label: Заголовок, widget: text, required: false }
+                  - { name: text, label: Текст, widget: text, required: false }
+                  - label: Технологии
+                    name: items
+                    widget: list
+                    summary: '{{title}}'
+                    fields:
+                      - { name: title, label: Название, widget: string }
+                      - { name: text, label: Текст, widget: text, required: false }
+          - name: process
+            label: Процесс
+            fields:
+              - { name: id, label: ID блока, widget: string, required: true }
+              - { name: title, label: Название в CMS, widget: string, required: false }
+              - { name: description, label: Описание блока, widget: text, required: false }
+              - { name: status, label: Статус, widget: select, options: [draft, modified, published], required: false }
+              - { name: enabled, label: Показывать на сайте, widget: boolean, default: true }
+              - label: Поля блока
+                name: fields
+                widget: object
+                fields:
+                  - { name: kicker, label: Надзаголовок, widget: string, required: false }
+                  - { name: title, label: Заголовок, widget: string, required: false }
+                  - label: Этапы
+                    name: steps
+                    widget: list
+                    summary: '{{title}}'
+                    fields:
+                      - { name: title, label: Заголовок, widget: string }
+                      - { name: text, label: Текст, widget: text, required: false }
+          - name: about
+            label: Обо мне
+            fields:
+              - { name: id, label: ID блока, widget: string, required: true }
+              - { name: title, label: Название в CMS, widget: string, required: false }
+              - { name: description, label: Описание блока, widget: text, required: false }
+              - { name: status, label: Статус, widget: select, options: [draft, modified, published], required: false }
+              - { name: enabled, label: Показывать на сайте, widget: boolean, default: true }
+              - { name: anchor, label: Якорь, widget: string, required: false }
+              - label: Поля блока
+                name: fields
+                widget: object
+                fields:
+                  - { name: kicker, label: Надзаголовок, widget: string, required: false }
+                  - { name: title, label: Имя / заголовок, widget: string, required: false }
+                  - label: Изображение
+                    name: image
+                    widget: object
+                    required: false
+                    fields:
+                      - { name: src, label: Изображение, widget: image, required: false }
+                  - label: Текст
+                    name: paragraphs
+                    widget: richtext
+                    required: false
+                    minimal: true
+                  - { name: personalLine, label: Личная строка, widget: text, required: false }
+          - name: blog
+            label: Блог / материалы
+            fields:
+              - { name: id, label: ID блока, widget: string, required: true }
+              - { name: title, label: Название в CMS, widget: string, required: false }
+              - { name: description, label: Описание блока, widget: text, required: false }
+              - { name: status, label: Статус, widget: select, options: [draft, modified, published], required: false }
+              - { name: enabled, label: Показывать на сайте, widget: boolean, default: true }
+              - label: Поля блока
+                name: fields
+                widget: object
+                fields:
+                  - { name: kicker, label: Надзаголовок, widget: string, required: false }
+                  - { name: title, label: Заголовок, widget: string, required: false }
+                  - label: Кнопка
+                    name: action
+                    widget: object
+                    required: false
+                    fields:
+                      - { name: label, label: Текст, widget: string, required: false }
+                      - { name: href, label: Ссылка, widget: string, required: false }
+                  - label: Материалы
+                    name: posts
+                    widget: list
+                    summary: '{{title}}'
+                    fields:
+                      - { name: title, label: Заголовок, widget: string }
+                      - { name: href, label: Ссылка, widget: string, required: false }
+          - name: finalCta
+            label: Финальный CTA
+            fields:
+              - { name: id, label: ID блока, widget: string, required: true }
+              - { name: title, label: Название в CMS, widget: string, required: false }
+              - { name: description, label: Описание блока, widget: text, required: false }
+              - { name: status, label: Статус, widget: select, options: [draft, modified, published], required: false }
+              - { name: enabled, label: Показывать на сайте, widget: boolean, default: true }
+              - { name: anchor, label: Якорь, widget: string, required: false }
+              - label: Поля блока
+                name: fields
+                widget: object
+                fields:
+                  - { name: kicker, label: Надзаголовок, widget: string, required: false }
+                  - { name: title, label: Заголовок, widget: text, required: false }
+                  - { name: text, label: Текст, widget: text, required: false }
+                  - label: Бронирование
+                    name: booking
+                    widget: object
+                    required: false
+                    fields:
+                      - { name: label, label: Текст, widget: string, required: false }
+                      - { name: href, label: Ссылка, widget: string, required: false }
+                  - label: Telegram
+                    name: telegram
+                    widget: object
+                    required: false
+                    fields:
+                      - { name: label, label: Текст, widget: string, required: false }
+                      - { name: href, label: Ссылка, widget: string, required: false }
+          - name: cardsGrid
+            label: Карточки / преимущества
+            fields:
+              - { name: id, label: ID блока, widget: string, required: false }
+              - { name: title, label: Название блока, widget: string, required: false }
+              - { name: description, label: Описание / заметка, widget: text, required: false }
+              - { name: status, label: Статус, widget: select, options: [draft, modified, published, error], required: false }
+              - { name: enabled, label: Показывать на сайте, widget: boolean, default: true, required: false }
+          - name: faq
+            label: FAQ
+            fields:
+              - { name: id, label: ID блока, widget: string, required: false }
+              - { name: title, label: Название блока, widget: string, required: false }
+              - { name: description, label: Описание / заметка, widget: text, required: false }
+              - { name: status, label: Статус, widget: select, options: [draft, modified, published, error], required: false }
+              - { name: enabled, label: Показывать на сайте, widget: boolean, default: true, required: false }
+      - label: Текстовая страница
+        name: contentBlocks
+        widget: list
+        required: false
+        types:
+          - name: paragraph
+            label: Абзац
+            fields:
+              - { name: id, label: ID, widget: string, required: false }
+              - { name: text, label: Текст, widget: richtext, required: false, minimal: true }
+          - name: heading
+            label: Заголовок
+            fields:
+              - { name: id, label: ID, widget: string, required: false }
+              - { name: text, label: Текст, widget: string }
+              - { name: level, label: Уровень, widget: select, options: [2, 3, 4], default: 2 }
+          - name: list
+            label: Список
+            fields:
+              - { name: id, label: ID, widget: string, required: false }
+              - label: Пункты
+                name: items
+                widget: list
+                field: { name: item, label: Пункт, widget: string }
+          - name: quote
+            label: Цитата
+            fields:
+              - { name: id, label: ID, widget: string, required: false }
+              - { name: text, label: Текст, widget: richtext, required: false, minimal: true }
+          - name: image
+            label: Изображение
+            fields:
+              - { name: id, label: ID, widget: string, required: false }
+              - { name: src, label: Файл, widget: image }
+              - { name: alt, label: Alt, widget: string, required: false }
+      - { name: _id, label: Internal ID, widget: hidden, required: false }
+  - name: posts
+    label: Статьи
+    label_singular: статья
+    folder: /content/posts
+    format: json
+    extension: json
+    identifier_field: title
+    summary: '{{title}} — {{slug}}'
+    create: true
+    fields:
+      - { name: id, label: ID, widget: string, required: true }
+      - { name: title, label: Название, widget: string, required: true }
+      - { name: slug, label: URL, widget: string, required: true }
+      - { name: status, label: Статус, widget: select, options: [draft, modified, published], default: draft }
+      - { name: topic, label: Тема, widget: string, required: false }
+      - label: Метки
+        name: tags
+        widget: list
+        required: false
+        field: { name: tag, label: Метка, widget: string }
+      - { name: updatedAt, label: Обновлено, widget: datetime, required: false }
+      - label: SEO
+        name: seo
+        widget: object
+        required: false
+        fields:
+          - { name: title, label: SEO title, widget: string, required: false }
+          - { name: description, label: Meta description, widget: text, required: false }
+          - { name: ogImage, label: OG image, widget: image, required: false }
+      - label: AI SEO
+        name: ai
+        widget: object
+        required: false
+        fields:
+          - { name: targetQuery, label: Целевой запрос, widget: string, required: false }
+          - { name: summary, label: AI summary, widget: text, required: false }
+      - label: Текст статьи
+        name: contentBlocks
+        widget: list
+        label_singular: блок
+        required: false
+        summary: '{{type}}: {{text}}'
+        types:
+          - name: paragraph
+            label: Абзац
+            fields:
+              - { name: id, label: ID, widget: string, required: false }
+              - { name: text, label: Текст, widget: richtext, required: false, minimal: true }
+          - name: heading
+            label: Заголовок
+            fields:
+              - { name: id, label: ID, widget: string, required: false }
+              - { name: text, label: Текст, widget: string }
+              - { name: level, label: Уровень, widget: select, options: [2, 3, 4], default: 2 }
+          - name: list
+            label: Список
+            fields:
+              - { name: id, label: ID, widget: string, required: false }
+              - label: Пункты
+                name: items
+                widget: list
+                field: { name: item, label: Пункт, widget: string }
+          - name: quote
+            label: Цитата
+            fields:
+              - { name: id, label: ID, widget: string, required: false }
+              - { name: text, label: Текст, widget: richtext, required: false, minimal: true }
+          - name: callout
+            label: Важный блок
+            fields:
+              - { name: id, label: ID, widget: string, required: false }
+              - { name: text, label: Текст, widget: richtext, required: false, minimal: true }
+          - name: image
+            label: Изображение
+            fields:
+              - { name: id, label: ID, widget: string, required: false }
+              - { name: src, label: Файл, widget: image }
+              - { name: alt, label: Alt, widget: string, required: false }
+          - name: button
+            label: Кнопка
+            fields:
+              - { name: id, label: ID, widget: string, required: false }
+              - { name: label, label: Текст, widget: string }
+              - { name: href, label: Ссылка, widget: string }
+      - { name: _id, label: Internal ID, widget: hidden, required: false }
+  - name: cases
+    label: Кейсы
+    label_singular: кейс
+    folder: /content/cases
+    format: json
+    extension: json
+    identifier_field: title
+    summary: '{{title}} — {{slug}}'
+    create: true
+    fields:
+      - { name: id, label: ID, widget: string, required: true }
+      - { name: title, label: Название, widget: string, required: true }
+      - { name: slug, label: URL, widget: string, required: true }
+      - { name: status, label: Статус, widget: select, options: [draft, modified, published], default: draft }
+      - { name: featuredOnHome, label: Показывать на главной, widget: boolean, required: false }
+      - { name: homeOrder, label: Порядок на главной, widget: number, required: false }
+      - { name: client, label: Клиент / проект, widget: string, required: false }
+      - { name: industry, label: Индустрия, widget: string, required: false }
+      - { name: service, label: Услуга, widget: string, required: false }
+      - { name: problem, label: Проблема, widget: text, required: false }
+      - { name: solutionSummary, label: Решение, widget: text, required: false }
+      - { name: result, label: Результат, widget: text, required: false }
+      - { name: summary, label: Краткое описание, widget: richtext, required: false, minimal: true }
+      - label: Метки
+        name: tags
+        widget: list
+        required: false
+        field: { name: tag, label: Метка, widget: string }
+      - { name: updatedAt, label: Обновлено, widget: datetime, required: false }
+      - label: Связи
+        name: relations
+        widget: object
+        required: false
+        fields:
+          - label: Материалы
+            name: items
+            widget: list
+            required: false
+            fields:
+              - { name: type, label: Тип, widget: string, required: false }
+              - { name: target, label: Цель, widget: string, required: false }
