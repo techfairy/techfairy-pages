@@ -63,6 +63,13 @@ singletons:
             fields:
               - { name: label, label: Текст, widget: string, required: false }
               - { name: href, label: Ссылка, widget: string, required: false }
+          - label: Бронирование встречи
+            name: booking
+            widget: object
+            required: false
+            fields:
+              - { name: label, label: Текст, widget: string, required: false }
+              - { name: href, label: Ссылка, widget: string, required: false }
       - label: Контакты
         name: contacts
         widget: object
