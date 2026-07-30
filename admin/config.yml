@@ -5,9 +5,10 @@ backend:
   repo: techfairy/techfairy-source
   branch: main
   auth_methods: [token]
+  skip_ci: false
 
 media_folder: /public/uploads
-public_folder: /techfairy-pages/uploads
+public_folder: /uploads
 
 locale: ru
 
